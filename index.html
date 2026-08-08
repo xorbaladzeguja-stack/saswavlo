@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>დამხმარე პროგრამა</title>
+<style>
+  :root{
+    --bg-top:#0d0618;
+    --bg-bot:#1c0f30;
+    --card:#f2eefb;
+    --card-2:#ffffff;
+    --purple:#a892f0;
+    --purple-deep:#8a63f0;
+    --purple-soft:#d9cdfb;
+    --purple-text:#b7a2fb;
+    --red:#ef5b48;
+    --green:#3fbf6f;
+    --text-light:#f5f2fc;
+    --text-dim:#9a8dbc;
+    --text-dark:#2a2140;
+    --radius:28px;
+    --radius-sm:18px;
+    --shadow:0 14px 30px -12px rgba(20,8,45,.55);
+  }
+  [data-theme="light"]{
+    --bg-top:#f4f0fc;
+    --bg-bot:#fdfbff;
+    --card:#ffffff;
+    --card-2:#f6f2fc;
+    --text-light:#241a3a;
+    --text-dim:#8577a3;
+    --text-dark:#241a3a;
+    --shadow:0 10px 26px -14px rgba(120,90,200,.35);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; height:100%; overflow-x:hidden;
+    background:linear-gradient(165deg, var(--bg-top) 0%, var(--bg-bot) 75%);
+    font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, 'Noto Sans Georgian', sans-serif; color:var(--text-light);}
+  #app{max-width:480px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; position:relative;}
+
+  /* ---------- Top bar ---------- */
+  .topbar{display:flex; align-items:center; justify-content:space-between; padding:22px 22px 8px 22px;}
+  .icon-btn{width:46px; height:46px; border-radius:15px; border:none; background:rgba(255,255,255,.06); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform .15s ease, background .15s ease;}
+  .icon-btn:active{transform:scale(.92);}
+  [data-theme="light"] .icon-btn{background:rgba(120,90,200,.08);}
+  .hamburger{display:flex; flex-direction:column; gap:6px; width:22px;}
+  .hamburger span{display:block; height:3px; border-radius:4px; background:var(--text-light); opacity:.9;}
+  .hamburger span:nth-child(2){width:75%;}
+  .hamburger span:nth-child(3){width:55%;}
+
+  .bell-wrap{position:relative;}
+  .bell-btn{width:52px; height:52px; border-radius:50%; background:linear-gradient(150deg,var(--purple-soft),var(--purple)); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:var(--shadow); transition:transform .15s ease;}
+  .bell-btn:active{transform:scale(.92);}
+  .bell-btn svg{width:24px; height:24px; color:#3a2a70;}
+  .notif-badge{position:absolute; top:-2px; right:-2px; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:var(--red); border:2px solid var(--bg-top); display:none; align-items:center; justify-content:center; font-size:.65rem; font-weight:800; color:#fff;}
+  .notif-badge.show{display:flex;}
+  @keyframes pulseRing{0%{box-shadow:0 0 0 0 rgba(239,91,72,.55);} 100%{box-shadow:0 0 0 9px rgba(239,91,72,0);}}
+  .notif-badge.show{animation:pulseRing 1.8s infinite;}
+
+  /* ---------- Home ---------- */
+  .hero{padding:52px 26px 26px 26px;}
+  .hero .eyebrow{font-size:.78rem; letter-spacing:.14em; text-transform:uppercase; color:var(--text-dim); font-weight:700; margin-bottom:6px;}
+  .hero h1{font-size:2.4rem; line-height:1.12; background:linear-gradient(120deg,#cdbdfb,#8a63f0 65%); -webkit-background-clip:text; background-clip:text; color:transparent; margin:0; font-weight:800;}
+
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:8px 22px 40px 22px;}
+  .tile{background:var(--card); border-radius:var(--radius); aspect-ratio:1/1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; border:none; cursor:pointer; padding:18px; box-shadow:var(--shadow); transition:transform .15s ease;}
+  .tile:active{transform:scale(.96);}
+  .tile-icon{width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:linear-gradient(150deg,var(--purple-soft),#ffffff00);}
+  .tile-icon svg{width:52%; height:auto; color:var(--purple-deep);}
+  .tile .tile-label{font-size:.8rem; color:var(--text-dark); font-weight:700; text-align:center; opacity:.85;}
+
+  /* ---------- Generic view ---------- */
+  .view{display:none; flex:1; flex-direction:column; padding:18px 20px 40px 20px; animation:fadeIn .2s ease;}
+  .view.active{display:flex;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;}}
+  .view-header{display:flex; align-items:center; gap:14px; margin-bottom:18px;}
+  .back-btn{width:42px; height:42px; border-radius:13px; background:var(--card); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-dark); flex:none; box-shadow:var(--shadow);}
+  .view-title{font-size:1.3rem; font-weight:800; color:var(--purple-text); margin:0;}
+
+  .card{background:var(--card); border-radius:var(--radius-sm); padding:18px; color:var(--text-dark); box-shadow:var(--shadow);}
+  .btn{background:linear-gradient(135deg,var(--purple),var(--purple-deep)); color:#fff; border:none; border-radius:15px; padding:14px 18px; font-size:1rem; font-weight:700; cursor:pointer; width:100%; box-shadow:0 10px 22px -10px rgba(138,99,240,.6); transition:transform .12s ease;}
+  .btn:active{transform:scale(.97);}
+  .btn.secondary{background:var(--card-2); color:var(--text-dark); box-shadow:none; border:1.5px solid var(--purple-soft);}
+  .btn.small{width:auto; padding:10px 16px; font-size:.85rem;}
+  .input, textarea, select{width:100%; padding:13px 14px; border-radius:13px; border:1.5px solid var(--purple-soft); background:var(--card-2); color:var(--text-dark); font-size:1rem; font-family:inherit;}
+  .row{display:flex; gap:10px;}
+  .row > *{flex:1;}
+  .muted{color:var(--text-dim); font-size:.85rem;}
+  .stack{display:flex; flex-direction:column; gap:12px;}
+
+  /* segmented control */
+  .segmented{display:flex; background:var(--card); border-radius:16px; padding:5px; gap:4px; margin-bottom:16px; box-shadow:var(--shadow);}
+  .segmented button{flex:1; border:none; background:transparent; padding:11px 6px; border-radius:12px; font-size:.82rem; font-weight:700; color:var(--text-dim); cursor:pointer; transition:all .15s ease;}
+  .segmented button.active{background:linear-gradient(135deg,var(--purple),var(--purple-deep)); color:#fff;}
+
+  /* ---------- Drawer ---------- */
+  .drawer-overlay{position:fixed; inset:0; background:rgba(10,4,20,.55); backdrop-filter:blur(2px); display:none; z-index:50;}
+  .drawer-overlay.show{display:block;}
+  .drawer{position:fixed; top:0; bottom:0; width:84%; max-width:340px; background:var(--bg-bot); z-index:51; padding:26px 22px; transition:transform .28s cubic-bezier(.2,.9,.3,1); display:flex; flex-direction:column; gap:20px; box-shadow:-10px 0 40px rgba(0,0,0,.4);}
+  .drawer.left{left:0; transform:translateX(-105%);}
+  .drawer.left.show{transform:translateX(0);}
+  .drawer.right{right:0; transform:translateX(105%);}
+  .drawer.right.show{transform:translateX(0);}
+  .drawer-head{display:flex; align-items:center; gap:12px;}
+  .drawer-head .dicon{width:38px; height:38px; border-radius:12px; background:linear-gradient(150deg,var(--purple-soft),var(--purple)); display:flex; align-items:center; justify-content:center;}
+  .drawer-head .dicon svg{width:20px; height:20px; color:#3a2a70;}
+  .drawer h2{margin:0; color:var(--text-light); font-size:1.15rem;}
+  .theme-row{display:flex; gap:10px;}
+  .theme-opt{flex:1; padding:12px; border-radius:14px; text-align:center; background:var(--card); color:var(--text-dark); cursor:pointer; font-size:.85rem; font-weight:700; border:2px solid transparent;}
+  .theme-opt.active{border-color:var(--purple);}
+  .settings-item{display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid rgba(255,255,255,.07);}
+
+  /* Reminder card */
+  .add-reminder-card{background:var(--card); border-radius:var(--radius-sm); padding:16px; box-shadow:var(--shadow);}
+  .reminder-item{background:var(--card); border-radius:16px; padding:12px 14px; color:var(--text-dark); display:flex; align-items:center; gap:12px; box-shadow:var(--shadow);}
+  .reminder-time-badge{min-width:56px; height:44px; border-radius:12px; background:linear-gradient(150deg,var(--purple-soft),var(--purple)); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.85rem; color:#3a2a70; flex:none;}
+  .reminder-text{flex:1; font-size:.92rem; font-weight:600;}
+  .del-x{background:rgba(239,91,72,.12); border:none; color:var(--red); font-size:1rem; cursor:pointer; width:30px; height:30px; border-radius:50%; flex:none;}
+  .empty-state{text-align:center; padding:30px 10px; color:var(--text-dim); font-size:.88rem;}
+
+  /* English/Math practice */
+  .practice-card{background:var(--card); border-radius:var(--radius-sm); padding:26px 20px; text-align:center; color:var(--text-dark); box-shadow:var(--shadow);}
+  .practice-word{font-size:2rem; font-weight:800; margin-bottom:6px;}
+  .practice-hint{color:var(--text-dim); font-size:.9rem; margin-bottom:18px;}
+  .choice-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px;}
+  .choice-btn{padding:14px; border-radius:13px; border:2px solid var(--purple-soft); background:var(--card-2); color:var(--text-dark); font-size:1.1rem; font-weight:700; cursor:pointer;}
+  .choice-btn.correct{border-color:var(--green); background:#e4f9ec;}
+  .choice-btn.wrong{border-color:var(--red); background:#fbe6e3;}
+  .score-pill{display:inline-block; padding:7px 16px; border-radius:20px; background:linear-gradient(135deg,var(--purple),var(--purple-deep)); color:#fff; font-size:.8rem; font-weight:700; margin-bottom:14px;}
+  .progress-bar{height:8px; border-radius:6px; background:var(--card-2); overflow:hidden; margin-bottom:14px;}
+  .progress-bar-fill{height:100%; background:linear-gradient(90deg,var(--purple),var(--purple-deep)); border-radius:6px; transition:width .3s ease;}
+  .big-letter{font-size:4.2rem; font-weight:800; color:var(--purple-deep); line-height:1;}
+  .letter-sub{font-size:1.6rem; color:var(--text-dim); margin-top:2px;}
+
+  .notes-list{display:flex; flex-direction:column; gap:10px;}
+  .note-item{background:var(--card); border-radius:16px; padding:14px; color:var(--text-dark); box-shadow:var(--shadow);}
+  .note-item h3{margin:0 0 4px 0; font-size:1rem;}
+  .note-item p{margin:0; font-size:.88rem; color:var(--text-dim); white-space:pre-wrap;}
+  .note-actions{display:flex; gap:8px; margin-top:8px;}
+  .note-actions button{border:none; background:none; color:var(--purple-deep); font-size:.82rem; font-weight:700; cursor:pointer; padding:0;}
+  .note-actions button.del{color:var(--red);}
+
+  .chapter-row{background:var(--card-2); border-radius:13px; padding:10px; display:flex; gap:8px; align-items:center;}
+  .chapter-row input{padding:9px 10px; font-size:.85rem;}
+  .book-card{background:var(--card); border-radius:16px; padding:14px; color:var(--text-dark); box-shadow:var(--shadow);}
+  .book-card h3{margin:0 0 6px 0;}
+  .chapter-link{display:block; font-size:.85rem; color:var(--purple-deep); text-decoration:none; padding:4px 0; font-weight:700;}
+
+  .fab-add{position:fixed; bottom:26px; right:calc(50% - 240px + 22px); width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg,var(--purple),var(--purple-deep)); color:#fff; border:none; font-size:1.7rem; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 10px 24px -8px rgba(124,92,240,.55); z-index:5;}
+  @media (max-width:520px){ .fab-add{right:22px;} }
+
+  /* ---------- PDF reader / page flip ---------- */
+  .reader-stage{position:relative; width:100%; aspect-ratio:3/4.1; background:var(--card-2); border-radius:18px; box-shadow:var(--shadow); overflow:hidden; perspective:1600px;}
+  .reader-page{position:absolute; inset:0; transform-origin:left center; will-change:transform; display:flex; align-items:center; justify-content:center; background:var(--card-2);}
+  .reader-page canvas{max-width:100%; max-height:100%; display:block; box-shadow:0 0 0 1px rgba(0,0,0,.04);}
+  .reader-page.shade::after{content:''; position:absolute; inset:0; background:linear-gradient(90deg, rgba(0,0,0,.18), rgba(0,0,0,0) 40%); pointer-events:none;}
+  .reader-controls{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:14px;}
+  .reader-controls .btn{flex:none; width:auto; padding:12px 20px;}
+  .reader-page-label{color:var(--text-dim); font-size:.85rem; font-weight:700;}
+  .reader-hint{text-align:center; color:var(--text-dim); font-size:.8rem; margin-top:8px;}
+
+  /* ---------- PIN lock ---------- */
+  #lockScreen{position:fixed; inset:0; z-index:200; background:linear-gradient(165deg, var(--bg-top) 0%, var(--bg-bot) 75%); display:none; flex-direction:column; align-items:center; justify-content:center; padding:30px;}
+  #lockScreen.show{display:flex;}
+  .lock-icon{width:70px; height:70px; border-radius:50%; background:linear-gradient(150deg,var(--purple-soft),var(--purple)); display:flex; align-items:center; justify-content:center; margin-bottom:18px;}
+  .lock-icon svg{width:30px; height:30px; color:#3a2a70;}
+  .lock-title{font-size:1.1rem; font-weight:800; color:var(--text-light); margin-bottom:22px;}
+  .pin-dots{display:flex; gap:14px; margin-bottom:26px;}
+  .pin-dot{width:16px; height:16px; border-radius:50%; border:2px solid var(--purple-soft); background:transparent; transition:background .12s ease;}
+  .pin-dot.filled{background:var(--purple); border-color:var(--purple);}
+  .pin-keypad{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; width:100%; max-width:280px;}
+  .pin-key{aspect-ratio:1/1; border-radius:50%; border:none; background:var(--card); color:var(--text-dark); font-size:1.4rem; font-weight:700; cursor:pointer;}
+  .pin-key:active{transform:scale(.94);}
+  .pin-key.ghost{background:transparent; box-shadow:none;}
+  .lock-error{color:var(--red); font-size:.85rem; margin-top:14px; min-height:1.2em; font-weight:700;}
+  .pin-setup-box{width:100%; max-width:280px;}
+
+  /* ---------- Attachments ---------- */
+  .attach-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:4px;}
+  .attach-thumb{position:relative; border-radius:12px; overflow:hidden; aspect-ratio:1/1; background:var(--card-2); box-shadow:var(--shadow);}
+  .attach-thumb img, .attach-thumb video{width:100%; height:100%; object-fit:cover; display:block;}
+  .attach-thumb .attach-del{position:absolute; top:4px; right:4px; width:24px; height:24px; border-radius:50%; background:rgba(20,8,45,.7); color:#fff; border:none; font-size:.8rem; cursor:pointer; display:flex; align-items:center; justify-content:center;}
+  .attach-thumb .vid-badge{position:absolute; bottom:4px; left:4px; background:rgba(20,8,45,.7); color:#fff; font-size:.62rem; padding:2px 6px; border-radius:6px; font-weight:700;}
+  .note-item .attach-grid{grid-template-columns:repeat(4,1fr); margin-bottom:8px;}
+  .note-item .attach-thumb{aspect-ratio:1/1;}
+  .checkbox-row{display:flex; align-items:center; gap:8px; padding:4px 0;}
+  .checkbox-row input{width:18px; height:18px;}
+  .checkbox-row label{font-size:.85rem; color:var(--text-dim);}
+</style>
+</head>
+<body>
+
+<!-- ===== PIN LOCK SCREEN ===== -->
+<div id="lockScreen">
+  <div class="lock-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+  <div class="lock-title" id="lockTitle">შეიყვანე PIN კოდი</div>
+  <div class="pin-dots" id="pinDots"></div>
+  <div class="pin-keypad" id="pinKeypad"></div>
+  <div class="lock-error" id="lockError"></div>
+</div>
+
+<div id="app">
+
+  <!-- ===== TOP BAR ===== -->
+  <div class="topbar">
+    <button class="icon-btn" onclick="openDrawer('settings')" aria-label="მენიუ">
+      <div class="hamburger"><span></span><span></span><span></span></div>
+    </button>
+    <div class="bell-wrap">
+      <button class="bell-btn" onclick="openDrawer('reminders')" aria-label="შეხსენებები">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a6 6 0 0 0-6 6v3.2c0 .7-.25 1.38-.7 1.92L4 15h16l-1.3-1.88a3 3 0 0 1-.7-1.92V8a6 6 0 0 0-6-6Zm0 20a2.6 2.6 0 0 0 2.5-2h-5A2.6 2.6 0 0 0 12 22Z"/></svg>
+      </button>
+      <div class="notif-badge" id="notifBadge">0</div>
+    </div>
+  </div>
+
+  <!-- ===== HOME ===== -->
+  <div class="view active" id="view-home">
+    <div class="hero">
+      <div class="eyebrow">დღეს ისწავლე რაღაც ახალი</div>
+      <h1>დამხმარე<br>პროგრამა</h1>
+    </div>
+    <div class="grid">
+      <button class="tile" onclick="showView('english')">
+        <div class="tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 4 5 20M12 4l7 16M7.5 14h9"/></svg></div>
+        <div class="tile-label">ინგლისური</div>
+      </button>
+      <button class="tile" onclick="showView('math')">
+        <div class="tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 4v16M4 12h16"/></svg></div>
+        <div class="tile-label">მათემატიკა</div>
+      </button>
+      <button class="tile" onclick="showView('notes')">
+        <div class="tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="5" cy="7" r="1.4" fill="currentColor" stroke="none"/><path d="M9 7h10"/><circle cx="5" cy="13" r="1.4" fill="currentColor" stroke="none"/><path d="M9 13h10"/><circle cx="5" cy="19" r="1.4" fill="currentColor" stroke="none"/><path d="M9 19h10"/></svg></div>
+        <div class="tile-label">ჩანაწერები</div>
+      </button>
+      <button class="tile" onclick="showView('books')">
+        <div class="tile-icon"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="2" width="14" height="20" rx="2"/><rect x="7.5" y="9" width="9" height="7" rx="1" fill="#ef5b48"/></svg></div>
+        <div class="tile-label">წიგნები / PDF</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== ENGLISH ===== -->
+  <div class="view" id="view-english">
+    <div class="view-header">
+      <button class="back-btn" onclick="showView('home')">←</button>
+      <h2 class="view-title">ინგლისური ენა</h2>
+    </div>
+    <div class="segmented">
+      <button id="segAlpha" onclick="setEngMode('alpha')">ასოები</button>
+      <button id="segWrite" onclick="setEngMode('write')">სიტყვები</button>
+      <button id="segRead" onclick="setEngMode('read')">კითხვა</button>
+    </div>
+
+    <!-- ALPHABET STAGE -->
+    <div id="engAlphaBox" class="practice-card" style="display:none;">
+      <div class="progress-bar"><div class="progress-bar-fill" id="alphaProgressFill" style="width:0%;"></div></div>
+      <div class="muted" id="alphaProgressLabel" style="margin-bottom:14px;">ასო 1 / 26</div>
+      <div class="big-letter" id="alphaLetterUp">A</div>
+      <div class="letter-sub" id="alphaLetterLow">a</div>
+      <div style="height:14px;"></div>
+      <button class="btn secondary small" onclick="speakLetter()">🔊 მოსმენა</button>
+      <div class="practice-hint" style="margin-top:16px;">დააჭირე იმ ასოს, რომელსაც ისმენ:</div>
+      <div class="choice-grid" id="alphaChoices"></div>
+    </div>
+
+    <!-- WRITE STAGE -->
+    <div id="engWriteBox" class="practice-card" style="display:none;">
+      <div class="score-pill" id="engScore">ქულა: 0</div>
+      <div class="practice-hint">დაწერე ინგლისურად:</div>
+      <div class="practice-word" id="engPromptKa">—</div>
+      <input class="input" id="engWriteInput" placeholder="შეიყვანე სიტყვა..." autocomplete="off">
+      <div style="height:12px;"></div>
+      <button class="btn" onclick="checkEngWrite()">შემოწმება</button>
+      <div class="muted" id="engWriteFeedback" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- READ STAGE -->
+    <div id="engReadBox" class="practice-card" style="display:none;">
+      <div class="score-pill" id="engScoreRead">ქულა: 0</div>
+      <div class="practice-hint">რას ნიშნავს ეს სიტყვა?</div>
+      <div class="practice-word" id="engPromptEn">—</div>
+      <button class="btn secondary small" onclick="speakWord()">🔊 გახმოვანება</button>
+      <div class="choice-grid" id="engChoices"></div>
+    </div>
+  </div>
+
+  <!-- ===== MATH ===== -->
+  <div class="view" id="view-math">
+    <div class="view-header">
+      <button class="back-btn" onclick="showView('home')">←</button>
+      <h2 class="view-title">მათემატიკა</h2>
+    </div>
+    <div class="row" style="margin-bottom:14px;">
+      <select class="input" id="mathRange" onchange="newMathProblem()">
+        <option value="10">1–10</option>
+        <option value="20" selected>1–20</option>
+        <option value="50">1–50</option>
+        <option value="100">1–100</option>
+      </select>
+    </div>
+    <div class="practice-card">
+      <div class="score-pill" id="mathScore">სწორია: 0 / 0</div>
+      <div class="practice-word" id="mathProblem">— + —</div>
+      <input class="input" id="mathInput" type="number" placeholder="პასუხი" inputmode="numeric">
+      <div style="height:12px;"></div>
+      <button class="btn" onclick="checkMath()">შემოწმება</button>
+      <div class="muted" id="mathFeedback" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <!-- ===== NOTES ===== -->
+  <div class="view" id="view-notes">
+    <div class="view-header">
+      <button class="back-btn" onclick="showView('home')">←</button>
+      <h2 class="view-title">ჩანაწერები</h2>
+    </div>
+    <div class="notes-list" id="notesList"></div>
+    <button class="fab-add" onclick="openNoteEditor()">+</button>
+  </div>
+
+  <!-- ===== BOOKS / PDF ===== -->
+  <div class="view" id="view-books">
+    <div class="view-header">
+      <button class="back-btn" onclick="showView('home')">←</button>
+      <h2 class="view-title">წიგნები / PDF</h2>
+    </div>
+    <div class="card stack" style="margin-bottom:16px;">
+      <div class="muted">ატვირთე PDF ფაილი, დაყავი თავებად და დაამატე სათაურები</div>
+      <button type="button" class="btn secondary" onclick="document.getElementById('pdfInput').click()">📄 PDF ფაილის არჩევა</button>
+      <input type="file" id="pdfInput" accept="application/pdf,.pdf" style="display:none;">
+      <div id="pdfFileName" class="muted"></div>
+      <div id="pdfMeta" class="muted"></div>
+      <button class="btn secondary small" id="readWholeBtn" style="display:none;" onclick="openReaderFromSession()">📖 წიგნის წაკითხვა (გვერდის გადაბრუნებით)</button>
+      <input class="input" id="bookTitle" placeholder="წიგნის სათაური">
+      <div id="chapterRows" class="stack"></div>
+      <button class="btn secondary small" onclick="addChapterRow()">+ თავის დამატება</button>
+      <button class="btn" onclick="splitAndSave()">დაყოფა და შენახვა</button>
+      <div class="muted" id="pdfFeedback"></div>
+    </div>
+    <div id="booksLibrary" class="stack"></div>
+  </div>
+
+  <!-- ===== PDF READER ===== -->
+  <div class="view" id="view-reader">
+    <div class="view-header">
+      <button class="back-btn" onclick="showView('books')">←</button>
+      <h2 class="view-title" id="readerTitle">წიგნი</h2>
+    </div>
+    <div class="reader-stage">
+      <div class="reader-page" id="readerPage"><canvas id="readerCanvas"></canvas></div>
+    </div>
+    <div class="reader-controls">
+      <button class="btn secondary" id="readerPrevBtn" onclick="readerPrev()">‹ წინა</button>
+      <div class="reader-page-label" id="readerPageLabel">1 / 1</div>
+      <button class="btn secondary" id="readerNextBtn" onclick="readerNext()">შემდეგი ›</button>
+    </div>
+    <div class="reader-hint">გვერდის შესაცვლელად დააჭირე ღილაკს — გვერდი გადაიბრუნება 📖</div>
+  </div>
+
+  <!-- ===== NOTE EDITOR ===== -->
+  <div class="view" id="view-noteEdit">
+    <div class="view-header">
+      <button class="back-btn" onclick="showView('notes')">←</button>
+      <h2 class="view-title">ჩანაწერი</h2>
+    </div>
+    <div class="stack">
+      <input class="input" id="noteTitleInput" placeholder="სათაური">
+      <textarea class="input" id="noteBodyInput" rows="10" placeholder="ტექსტი..."></textarea>
+      <button type="button" class="btn secondary" onclick="document.getElementById('noteMediaInput').click()">📎 ფოტო / ვიდეოს დამატება</button>
+      <input type="file" id="noteMediaInput" accept="image/*,video/*" multiple style="display:none;" onchange="onNoteMediaSelected(event)">
+      <div class="attach-grid" id="noteAttachGrid"></div>
+      <div class="muted" id="noteAttachMsg"></div>
+      <button class="btn" onclick="saveNote()">შენახვა</button>
+    </div>
+  </div>
+
+  <!-- ===== SETTINGS DRAWER (left) ===== -->
+  <div class="drawer-overlay" id="overlaySettings" onclick="closeDrawer('settings')"></div>
+  <div class="drawer left" id="drawerSettings">
+    <div class="drawer-head">
+      <div class="dicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.64 8.6a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1Z"/></svg></div>
+      <h2>პარამეტრები</h2>
+    </div>
+    <div>
+      <div class="settings-item" style="border:none; padding-bottom:6px;"><span>თემა</span></div>
+      <div class="theme-row">
+        <div class="theme-opt active" id="themeDarkBtn" onclick="setTheme('dark')">მუქი</div>
+        <div class="theme-opt" id="themeLightBtn" onclick="setTheme('light')">ღია</div>
+      </div>
+    </div>
+    <div class="settings-item">
+      <span>PIN კოდის დაცვა</span>
+      <button class="btn small secondary" id="pinToggleBtn" onclick="onPinToggleClick()">ჩართვა</button>
+    </div>
+    <div class="settings-item" id="pinChangeRow" style="display:none;">
+      <span>PIN კოდის შეცვლა</span>
+      <button class="btn small secondary" onclick="startPinChange()">შეცვლა</button>
+    </div>
+    <div class="settings-item">
+      <span>მონაცემების გასუფთავება</span>
+      <button class="btn small secondary" onclick="clearAllData()">გასუფთავება</button>
+    </div>
+    <div class="muted">დამხმარე პროგრამა · v1.2</div>
+  </div>
+
+  <!-- ===== REMINDERS DRAWER (right) ===== -->
+  <div class="drawer-overlay" id="overlayReminders" onclick="closeDrawer('reminders')"></div>
+  <div class="drawer right" id="drawerReminders">
+    <div class="drawer-head">
+      <div class="dicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a6 6 0 0 0-6 6v3.2c0 .7-.25 1.38-.7 1.92L4 15h16l-1.3-1.88a3 3 0 0 1-.7-1.92V8a6 6 0 0 0-6-6Z"/><path d="M9.5 20a2.6 2.6 0 0 0 5 0"/></svg></div>
+      <h2>შეხსენებები</h2>
+    </div>
+    <div class="add-reminder-card stack">
+      <input class="input" id="remText" placeholder="რა უნდა გამახსენდეს?">
+      <div class="row">
+        <input class="input" id="remTime" type="time">
+        <button class="btn small" onclick="addReminder()">დამატება</button>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="remDaily" checked>
+        <label for="remDaily">გამეორდეს ყოველდღე</label>
+      </div>
+    </div>
+    <div class="stack" id="remindersList"></div>
+    <div class="muted" id="remPermMsg"></div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+if(window['pdfjsLib']){
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+</script>
+<script>
+/* ================= STORAGE HELPERS ================= */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+};
+
+/* ================= VIEW NAVIGATION ================= */
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  if(name==='notes') renderNotes();
+  if(name==='math') newMathProblem();
+  if(name==='english') setEngMode(engMode);
+  if(name==='books') renderBooksLibrary();
+  window.scrollTo(0,0);
+}
+function openDrawer(name){
+  document.getElementById('overlay'+cap(name)).classList.add('show');
+  document.getElementById('drawer'+cap(name)).classList.add('show');
+  if(name==='reminders') renderReminders();
+}
+function closeDrawer(name){
+  document.getElementById('overlay'+cap(name)).classList.remove('show');
+  document.getElementById('drawer'+cap(name)).classList.remove('show');
+}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+
+/* ================= THEME ================= */
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme', t==='light' ? 'light' : 'dark');
+  document.getElementById('themeDarkBtn').classList.toggle('active', t==='dark');
+  document.getElementById('themeLightBtn').classList.toggle('active', t==='light');
+  store.set('theme', t);
+}
+setTheme(store.get('theme','dark'));
+
+function clearAllData(){
+  if(confirm('დარწმუნებული ხარ? ყველა ჩანაწერი, წიგნი და შეხსენება წაიშლება.')){
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+/* ================= PIN LOCK ================= */
+let pinBuffer = '';
+let pinMode = 'unlock'; // 'unlock' | 'setup1' | 'setup2' | 'change-old' | 'change1' | 'change2'
+let pinPending = '';
+
+function renderPinKeypad(){
+  const box = document.getElementById('pinKeypad');
+  box.innerHTML = '';
+  const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
+  keys.forEach(k=>{
+    const b = document.createElement('button');
+    if(k===''){ b.className='pin-key ghost'; b.disabled = true; }
+    else{
+      b.className = 'pin-key';
+      b.textContent = k;
+      b.onclick = ()=> k==='⌫' ? pinBackspace() : pinPress(k);
+    }
+    box.appendChild(b);
+  });
+}
+function renderPinDots(){
+  const box = document.getElementById('pinDots');
+  box.innerHTML = '';
+  for(let i=0;i<4;i++){
+    const d = document.createElement('div');
+    d.className = 'pin-dot' + (i < pinBuffer.length ? ' filled' : '');
+    box.appendChild(d);
+  }
+}
+function pinPress(digit){
+  if(pinBuffer.length>=4) return;
+  pinBuffer += digit;
+  renderPinDots();
+  document.getElementById('lockError').textContent = '';
+  if(pinBuffer.length===4) setTimeout(handlePinComplete, 150);
+}
+function pinBackspace(){
+  pinBuffer = pinBuffer.slice(0,-1);
+  renderPinDots();
+}
+function handlePinComplete(){
+  const savedPin = store.get('pinCode', null);
+  if(pinMode==='unlock'){
+    if(pinBuffer===savedPin){
+      document.getElementById('lockScreen').classList.remove('show');
+      pinBuffer=''; renderPinDots();
+    } else {
+      document.getElementById('lockError').textContent = 'არასწორი PIN კოდი';
+      pinBuffer=''; renderPinDots();
+    }
+  } else if(pinMode==='setup1'){
+    pinPending = pinBuffer;
+    pinBuffer=''; renderPinDots();
+    pinMode='setup2';
+    document.getElementById('lockTitle').textContent = 'გაიმეორე PIN კოდი';
+  } else if(pinMode==='setup2'){
+    if(pinBuffer===pinPending){
+      store.set('pinCode', pinBuffer);
+      store.set('pinEnabled', true);
+      pinBuffer=''; pinPending=''; renderPinDots();
+      document.getElementById('lockScreen').classList.remove('show');
+      refreshPinSettingsUI();
+    } else {
+      document.getElementById('lockError').textContent = 'კოდები არ ემთხვევა, სცადე თავიდან';
+      pinBuffer=''; pinPending=''; renderPinDots();
+      pinMode='setup1';
+      document.getElementById('lockTitle').textContent = 'შექმენი PIN კოდი';
+    }
+  } else if(pinMode==='change-old'){
+    if(pinBuffer===savedPin){
+      pinBuffer=''; renderPinDots();
+      pinMode='change1';
+      document.getElementById('lockTitle').textContent = 'შექმენი ახალი PIN კოდი';
+    } else {
+      document.getElementById('lockError').textContent = 'არასწორი PIN კოდი';
+      pinBuffer=''; renderPinDots();
+    }
+  } else if(pinMode==='change1'){
+    pinPending = pinBuffer;
+    pinBuffer=''; renderPinDots();
+    pinMode='change2';
+    document.getElementById('lockTitle').textContent = 'გაიმეორე ახალი PIN კოდი';
+  } else if(pinMode==='change2'){
+    if(pinBuffer===pinPending){
+      store.set('pinCode', pinBuffer);
+      pinBuffer=''; pinPending=''; renderPinDots();
+      document.getElementById('lockScreen').classList.remove('show');
+      alert('PIN კოდი შეიცვალა.');
+    } else {
+      document.getElementById('lockError').textContent = 'კოდები არ ემთხვევა, სცადე თავიდან';
+      pinBuffer=''; pinPending=''; renderPinDots();
+      pinMode='change1';
+      document.getElementById('lockTitle').textContent = 'შექმენი ახალი PIN კოდი';
+    }
+  }
+}
+function showLockScreen(mode){
+  pinMode = mode;
+  pinBuffer=''; pinPending='';
+  renderPinKeypad();
+  renderPinDots();
+  document.getElementById('lockError').textContent='';
+  document.getElementById('lockTitle').textContent =
+    mode==='unlock' ? 'შეიყვანე PIN კოდი' :
+    mode==='setup1' ? 'შექმენი PIN კოდი' :
+    mode==='change-old' ? 'შეიყვანე მიმდინარე PIN კოდი' : 'PIN კოდი';
+  document.getElementById('lockScreen').classList.add('show');
+}
+function onPinToggleClick(){
+  const enabled = store.get('pinEnabled', false);
+  if(!enabled){
+    closeDrawer('settings');
+    showLockScreen('setup1');
+  } else {
+    if(confirm('გამორთვას ადასტურებ? PIN კოდი აღარ მოეთხოვება.')){
+      store.set('pinEnabled', false);
+      store.set('pinCode', null);
+      refreshPinSettingsUI();
+    }
+  }
+}
+function startPinChange(){
+  closeDrawer('settings');
+  showLockScreen('change-old');
+}
+function refreshPinSettingsUI(){
+  const enabled = store.get('pinEnabled', false);
+  document.getElementById('pinToggleBtn').textContent = enabled ? 'გამორთვა' : 'ჩართვა';
+  document.getElementById('pinChangeRow').style.display = enabled ? 'flex' : 'none';
+}
+function checkPinOnLaunch(){
+  const enabled = store.get('pinEnabled', false);
+  if(enabled){
+    showLockScreen('unlock');
+  }
+  refreshPinSettingsUI();
+}
+
+/* ================= ENGLISH: ALPHABET (beginner stage) ================= */
+const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+let alphaIndex = store.get('alphaIndex', 0);
+let currentAlphaLetter = null;
+
+function renderAlphaStage(){
+  if(alphaIndex >= alphabet.length) alphaIndex = 0;
+  currentAlphaLetter = alphabet[alphaIndex];
+  document.getElementById('alphaLetterUp').textContent = currentAlphaLetter;
+  document.getElementById('alphaLetterLow').textContent = currentAlphaLetter.toLowerCase();
+  document.getElementById('alphaProgressLabel').textContent = `ასო ${alphaIndex+1} / ${alphabet.length}`;
+  document.getElementById('alphaProgressFill').style.width = Math.round((alphaIndex/alphabet.length)*100) + '%';
+  const opts = [currentAlphaLetter];
+  while(opts.length < 4){
+    const r = alphabet[Math.floor(Math.random()*alphabet.length)];
+    if(!opts.includes(r)) opts.push(r);
+  }
+  opts.sort(()=>Math.random()-0.5);
+  const box = document.getElementById('alphaChoices');
+  box.innerHTML = '';
+  opts.forEach(o=>{
+    const b = document.createElement('button');
+    b.className = 'choice-btn'; b.textContent = o;
+    b.onclick = ()=>checkAlphaChoice(b, o);
+    box.appendChild(b);
+  });
+  speakLetter();
+}
+function checkAlphaChoice(btn, chosen){
+  document.querySelectorAll('#alphaChoices .choice-btn').forEach(b=>b.disabled=true);
+  if(chosen === currentAlphaLetter){
+    btn.classList.add('correct');
+    alphaIndex++;
+    store.set('alphaIndex', alphaIndex);
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('#alphaChoices .choice-btn').forEach(b=>{
+      if(b.textContent===currentAlphaLetter) b.classList.add('correct');
+    });
+  }
+  setTimeout(()=>{
+    document.querySelectorAll('#alphaChoices .choice-btn').forEach(b=>b.disabled=false);
+    renderAlphaStage();
+  }, 900);
+}
+function speakLetter(){
+  if(!currentAlphaLetter) return;
+  try{
+    const u = new SpeechSynthesisUtterance(currentAlphaLetter);
+    u.lang = 'en-US'; u.rate = 0.8;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ================= ENGLISH: WORDS ================= */
+const wordBank = [
+  {en:'apple', ka:'ვაშლი'}, {en:'water', ka:'წყალი'}, {en:'house', ka:'სახლი'},
+  {en:'book', ka:'წიგნი'}, {en:'friend', ka:'მეგობარი'}, {en:'school', ka:'სკოლა'},
+  {en:'dog', ka:'ძაღლი'}, {en:'cat', ka:'კატა'}, {en:'sun', ka:'მზე'},
+  {en:'moon', ka:'მთვარე'}, {en:'family', ka:'ოჯახი'}, {en:'love', ka:'სიყვარული'},
+  {en:'work', ka:'სამუშაო'}, {en:'city', ka:'ქალაქი'}, {en:'road', ka:'გზა'},
+  {en:'food', ka:'საკვები'}, {en:'time', ka:'დრო'}, {en:'happy', ka:'ბედნიერი'}
+];
+let engMode = store.get('engMode','alpha');
+let engScoreVal = store.get('engScore', 0);
+let engScoreReadVal = store.get('engScoreRead', 0);
+let currentEngWord = null;
+
+function setEngMode(mode){
+  engMode = mode;
+  store.set('engMode', mode);
+  document.getElementById('segAlpha').className = mode==='alpha' ? 'active' : '';
+  document.getElementById('segWrite').className = mode==='write' ? 'active' : '';
+  document.getElementById('segRead').className = mode==='read' ? 'active' : '';
+  document.getElementById('engAlphaBox').style.display = mode==='alpha' ? 'block' : 'none';
+  document.getElementById('engWriteBox').style.display = mode==='write' ? 'block' : 'none';
+  document.getElementById('engReadBox').style.display = mode==='read' ? 'block' : 'none';
+  if(mode==='alpha') renderAlphaStage();
+  if(mode==='write'){ document.getElementById('engScore').textContent = 'ქულა: ' + engScoreVal; nextEngWriteWord(); }
+  if(mode==='read'){ document.getElementById('engScoreRead').textContent = 'ქულა: ' + engScoreReadVal; nextEngReadWord(); }
+}
+function nextEngWriteWord(){
+  currentEngWord = wordBank[Math.floor(Math.random()*wordBank.length)];
+  document.getElementById('engPromptKa').textContent = currentEngWord.ka;
+  document.getElementById('engWriteInput').value = '';
+  document.getElementById('engWriteFeedback').textContent = '';
+}
+function nextEngReadWord(){
+  currentEngWord = wordBank[Math.floor(Math.random()*wordBank.length)];
+  document.getElementById('engPromptEn').textContent = currentEngWord.en;
+  const opts = [currentEngWord.ka];
+  while(opts.length < 4){
+    const r = wordBank[Math.floor(Math.random()*wordBank.length)].ka;
+    if(!opts.includes(r)) opts.push(r);
+  }
+  opts.sort(()=>Math.random()-0.5);
+  const box = document.getElementById('engChoices');
+  box.innerHTML = '';
+  opts.forEach(o=>{
+    const b = document.createElement('button');
+    b.className='choice-btn'; b.textContent=o;
+    b.onclick=()=>checkEngRead(b, o);
+    box.appendChild(b);
+  });
+}
+function checkEngWrite(){
+  const val = document.getElementById('engWriteInput').value.trim().toLowerCase();
+  const fb = document.getElementById('engWriteFeedback');
+  if(val === currentEngWord.en){
+    engScoreVal++; store.set('engScore', engScoreVal);
+    document.getElementById('engScore').textContent = 'ქულა: ' + engScoreVal;
+    fb.textContent = 'სწორია! ✅';
+    setTimeout(nextEngWriteWord, 700);
+  } else {
+    fb.textContent = 'არასწორია. სწორია: ' + currentEngWord.en;
+  }
+}
+function checkEngRead(btn, chosen){
+  document.querySelectorAll('#engChoices .choice-btn').forEach(b=>b.disabled=true);
+  if(chosen === currentEngWord.ka){
+    btn.classList.add('correct');
+    engScoreReadVal++; store.set('engScoreRead', engScoreReadVal);
+    document.getElementById('engScoreRead').textContent = 'ქულა: ' + engScoreReadVal;
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('#engChoices .choice-btn').forEach(b=>{
+      if(b.textContent===currentEngWord.ka) b.classList.add('correct');
+    });
+  }
+  setTimeout(()=>{ document.querySelectorAll('#engChoices .choice-btn').forEach(b=>b.disabled=false); nextEngReadWord(); }, 900);
+}
+function speakWord(){
+  if(!currentEngWord) return;
+  try{
+    const u = new SpeechSynthesisUtterance(currentEngWord.en);
+    u.lang = 'en-US';
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ================= MATH PRACTICE ================= */
+let mathCorrect = store.get('mathCorrect', 0);
+let mathTotal = store.get('mathTotal', 0);
+let mathAnswer = 0;
+function newMathProblem(){
+  const range = parseInt(document.getElementById('mathRange').value || 20);
+  const a = Math.floor(Math.random()*range)+1;
+  const b = Math.floor(Math.random()*range)+1;
+  const isAdd = Math.random() < 0.5;
+  let x=a, y=b;
+  if(!isAdd && a < b){ x=b; y=a; }
+  mathAnswer = isAdd ? x+y : x-y;
+  document.getElementById('mathProblem').textContent = `${x} ${isAdd?'+':'−'} ${y} = ?`;
+  document.getElementById('mathInput').value = '';
+  document.getElementById('mathFeedback').textContent = '';
+  document.getElementById('mathScore').textContent = `სწორია: ${mathCorrect} / ${mathTotal}`;
+}
+function checkMath(){
+  const val = parseInt(document.getElementById('mathInput').value);
+  mathTotal++;
+  const fb = document.getElementById('mathFeedback');
+  if(val === mathAnswer){
+    mathCorrect++;
+    fb.textContent = 'სწორია! ✅';
+  } else {
+    fb.textContent = 'არასწორია. სწორი პასუხია: ' + mathAnswer;
+  }
+  store.set('mathCorrect', mathCorrect);
+  store.set('mathTotal', mathTotal);
+  document.getElementById('mathScore').textContent = `სწორია: ${mathCorrect} / ${mathTotal}`;
+  setTimeout(newMathProblem, 900);
+}
+
+/* ================= NOTES ================= */
+let editingNoteId = null;
+let editingAttachments = [];
+function renderNotes(){
+  const notes = store.get('notes', []);
+  const list = document.getElementById('notesList');
+  list.innerHTML = '';
+  if(notes.length===0){
+    list.innerHTML = '<div class="empty-state">ჩანაწერები არ არის.<br>დააჭირე + ღილაკს დასამატებლად.</div>';
+    return;
+  }
+  notes.slice().reverse().forEach(n=>{
+    const div = document.createElement('div');
+    div.className = 'note-item';
+    const atts = n.attachments || [];
+    const attHtml = atts.length ? `<div class="attach-grid">${atts.map(a=>
+      a.type==='video'
+        ? `<div class="attach-thumb"><video src="${a.data}" muted></video><span class="vid-badge">▶</span></div>`
+        : `<div class="attach-thumb"><img src="${a.data}"></div>`
+    ).join('')}</div>` : '';
+    div.innerHTML = `<h3>${escapeHtml(n.title||'(უსათაურო)')}</h3>${attHtml}<p>${escapeHtml((n.body||'').slice(0,120))}</p>
+      <div class="note-actions">
+        <button onclick="openNoteEditor('${n.id}')">რედაქტირება</button>
+        <button class="del" onclick="deleteNote('${n.id}')">წაშლა</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+function openNoteEditor(id){
+  editingNoteId = id || null;
+  const notes = store.get('notes', []);
+  const n = notes.find(x=>x.id===id);
+  document.getElementById('noteTitleInput').value = n ? n.title : '';
+  document.getElementById('noteBodyInput').value = n ? n.body : '';
+  editingAttachments = n && n.attachments ? [...n.attachments] : [];
+  document.getElementById('noteAttachMsg').textContent = '';
+  document.getElementById('noteMediaInput').value = '';
+  renderNoteAttachGrid();
+  showView('noteEdit');
+}
+function renderNoteAttachGrid(){
+  const box = document.getElementById('noteAttachGrid');
+  box.innerHTML = '';
+  editingAttachments.forEach((a, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'attach-thumb';
+    div.innerHTML = (a.type==='video'
+      ? `<video src="${a.data}" muted></video><span class="vid-badge">▶</span>`
+      : `<img src="${a.data}">`) + `<button class="attach-del" onclick="removeAttachment(${idx})">✕</button>`;
+    box.appendChild(div);
+  });
+}
+function removeAttachment(idx){
+  editingAttachments.splice(idx,1);
+  renderNoteAttachGrid();
+}
+function onNoteMediaSelected(event){
+  const files = Array.from(event.target.files || []);
+  const msg = document.getElementById('noteAttachMsg');
+  msg.textContent = '';
+  let remaining = files.length;
+  if(remaining===0) return;
+  files.forEach(file=>{
+    const isVideo = file.type.startsWith('video/');
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      editingAttachments.push({type: isVideo ? 'video' : 'image', data: reader.result, name: file.name});
+      renderNoteAttachGrid();
+      remaining--;
+      if(remaining===0) event.target.value='';
+    };
+    reader.onerror = ()=>{
+      msg.textContent = 'ფაილის ჩატვირთვა ვერ მოხერხდა: ' + file.name;
+      remaining--;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function saveNote(){
+  const title = document.getElementById('noteTitleInput').value.trim();
+  const body = document.getElementById('noteBodyInput').value.trim();
+  if(!title && !body && editingAttachments.length===0){ showView('notes'); return; }
+  let notes = store.get('notes', []);
+  if(editingNoteId){
+    notes = notes.map(n=> n.id===editingNoteId ? {...n, title, body, attachments: editingAttachments} : n);
+  } else {
+    notes.push({id: Date.now().toString(), title, body, attachments: editingAttachments});
+  }
+  try{
+    store.set('notes', notes);
+  }catch(e){
+    alert('ვერ შეინახა — ფაილები ზედმეტად დიდია მეხსიერებისთვის. სცადე ნაკლები ან უფრო მცირე ზომის ფოტო/ვიდეო.');
+    return;
+  }
+  showView('notes');
+}
+function deleteNote(id){
+  let notes = store.get('notes', []);
+  notes = notes.filter(n=>n.id!==id);
+  store.set('notes', notes);
+  renderNotes();
+}
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ================= PDF READER (page flip) ================= */
+let readerPdfDoc = null;
+let readerPageNum = 1;
+let readerNumPages = 1;
+let readerBusy = false;
+
+async function openReader(bytes, title){
+  if(!window.pdfjsLib){ alert('PDF წამკითხველი ვერ ჩაიტვირთა — შეამოწმე ინტერნეტ კავშირი.'); return; }
+  document.getElementById('readerTitle').textContent = title || 'წიგნი';
+  showView('reader');
+  try{
+    const data = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+    readerPdfDoc = await pdfjsLib.getDocument({data}).promise;
+    readerNumPages = readerPdfDoc.numPages;
+    readerPageNum = 1;
+    await drawReaderPage(readerPageNum);
+  }catch(e){
+    document.getElementById('readerPageLabel').textContent = 'ვერ გაიხსნა';
+  }
+}
+async function drawReaderPage(num){
+  const page = await readerPdfDoc.getPage(num);
+  const stage = document.querySelector('.reader-stage');
+  const baseViewport = page.getViewport({scale:1});
+  const scale = Math.min(stage.clientWidth / baseViewport.width, stage.clientHeight / baseViewport.height);
+  const viewport = page.getViewport({scale});
+  const canvas = document.getElementById('readerCanvas');
+  canvas.width = viewport.width; canvas.height = viewport.height;
+  const ctx = canvas.getContext('2d');
+  await page.render({canvasContext: ctx, viewport}).promise;
+  document.getElementById('readerPageLabel').textContent = `${num} / ${readerNumPages}`;
+  document.getElementById('readerPrevBtn').disabled = num<=1;
+  document.getElementById('readerNextBtn').disabled = num>=readerNumPages;
+}
+function flipReader(newNum, direction){
+  if(readerBusy || newNum<1 || newNum>readerNumPages) return;
+  readerBusy = true;
+  const el = document.getElementById('readerPage');
+  const outAngle = direction==='next' ? '-100deg' : '100deg';
+  const inAngle = direction==='next' ? '100deg' : '-100deg';
+  el.classList.add('shade');
+  el.style.transition = 'transform .22s ease-in';
+  el.style.transform = `rotateY(${outAngle})`;
+  setTimeout(async ()=>{
+    await drawReaderPage(newNum);
+    readerPageNum = newNum;
+    el.style.transition = 'none';
+    el.style.transform = `rotateY(${inAngle})`;
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        el.style.transition = 'transform .24s ease-out';
+        el.style.transform = 'rotateY(0deg)';
+        setTimeout(()=>{ el.classList.remove('shade'); readerBusy = false; }, 240);
+      });
+    });
+  }, 220);
+}
+function readerNext(){ flipReader(readerPageNum+1, 'next'); }
+function readerPrev(){ flipReader(readerPageNum-1, 'prev'); }
+
+/* ================= PDF BOOKS ================= */
+let sessionChapters = {};
+let currentPdfBytes = null;
+let currentPdfPages = 0;
+document.getElementById('pdfInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  document.getElementById('pdfFileName').textContent = 'არჩეულია: ' + file.name;
+  let buf;
+  try{
+    buf = await file.arrayBuffer();
+  }catch(err){
+    document.getElementById('pdfMeta').textContent = 'ფაილის წაკითხვა ვერ მოხერხდა.';
+    return;
+  }
+  currentPdfBytes = buf;
+  try{
+    const doc = await PDFLib.PDFDocument.load(buf);
+    currentPdfPages = doc.getPageCount();
+    document.getElementById('pdfMeta').textContent = `გვერდები: ${currentPdfPages}`;
+    document.getElementById('chapterRows').innerHTML = '';
+    addChapterRow();
+    document.getElementById('readWholeBtn').style.display = 'block';
+  }catch(err){
+    document.getElementById('pdfMeta').textContent = 'ვერ წაიკითხა PDF ფაილი.';
+    document.getElementById('readWholeBtn').style.display = 'none';
+  }
+});
+function openReaderFromSession(){
+  if(!currentPdfBytes) return;
+  const title = document.getElementById('bookTitle').value.trim() || 'წიგნი';
+  openReader(currentPdfBytes.slice(0), title);
+}
+function addChapterRow(){
+  const row = document.createElement('div');
+  row.className = 'chapter-row';
+  row.innerHTML = `
+    <input class="input chTitle" placeholder="თავის სათაური" style="flex:2;">
+    <input class="input chFrom" type="number" placeholder="დან" style="flex:1;">
+    <input class="input chTo" type="number" placeholder="მდე" style="flex:1;">
+    <button class="del-x" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('chapterRows').appendChild(row);
+}
+async function splitAndSave(){
+  const fb = document.getElementById('pdfFeedback');
+  if(!currentPdfBytes){ fb.textContent = 'ჯერ ატვირთე PDF ფაილი.'; return; }
+  const bookTitle = document.getElementById('bookTitle').value.trim() || 'უსათაურო წიგნი';
+  const rows = document.querySelectorAll('#chapterRows .chapter-row');
+  if(rows.length===0){ fb.textContent = 'დაამატე მინიმუმ ერთი თავი.'; return; }
+  fb.textContent = 'მუშავდება...';
+  const srcDoc = await PDFLib.PDFDocument.load(currentPdfBytes);
+  const chapters = [];
+  for(const row of rows){
+    const title = row.querySelector('.chTitle').value.trim() || 'თავი';
+    let from = parseInt(row.querySelector('.chFrom').value);
+    let to = parseInt(row.querySelector('.chTo').value);
+    if(isNaN(from) || isNaN(to)) continue;
+    from = Math.max(1, from); to = Math.min(currentPdfPages, to);
+    if(from > to) continue;
+    const newDoc = await PDFLib.PDFDocument.create();
+    const indices = [];
+    for(let p=from; p<=to; p++) indices.push(p-1);
+    const copied = await newDoc.copyPages(srcDoc, indices);
+    copied.forEach(p=>newDoc.addPage(p));
+    const bytes = await newDoc.save();
+    const blob = new Blob([bytes], {type:'application/pdf'});
+    const url = URL.createObjectURL(blob);
+    const chapterId = 'ch_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    sessionChapters[chapterId] = {bytes, title: `${bookTitle} — ${title}`};
+    chapters.push({title, from, to, url, filename: `${bookTitle} - ${title}.pdf`, chapterId});
+  }
+  if(chapters.length===0){ fb.textContent = 'გვერდების დიაპაზონი არასწორია.'; return; }
+  const books = store.get('booksMeta', []);
+  books.push({ id: Date.now().toString(), title: bookTitle, date: new Date().toLocaleDateString('ka-GE'), chapterTitles: chapters.map(c=>({title:c.title, from:c.from, to:c.to, chapterId:c.chapterId})) });
+  store.set('booksMeta', books);
+  fb.innerHTML = 'დასრულდა!<br>' + chapters.map(c=>
+    `<a class="chapter-link" href="${c.url}" download="${c.filename}">⬇ ${escapeHtml(c.title)} (გვ. ${c.from}-${c.to})</a>` +
+    `<a class="chapter-link" href="javascript:void(0)" onclick="openReaderById('${c.chapterId}')">📖 წაკითხვა</a>`
+  ).join('');
+  renderBooksLibrary();
+}
+function openReaderById(chapterId){
+  const entry = sessionChapters[chapterId];
+  if(!entry){ alert('ეს თავი ამ სესიაში აღარ არის ხელმისაწვდომი წასაკითხად. თავიდან ატვირთე PDF.'); return; }
+  openReader(entry.bytes.slice(0), entry.title);
+}
+function renderBooksLibrary(){
+  const books = store.get('booksMeta', []);
+  const box = document.getElementById('booksLibrary');
+  box.innerHTML = '';
+  if(books.length===0) return;
+  const heading = document.createElement('div');
+  heading.className = 'muted';
+  heading.textContent = 'შენახული წიგნები (მეტამონაცემები):';
+  box.appendChild(heading);
+  books.slice().reverse().forEach(b=>{
+    const div = document.createElement('div');
+    div.className = 'book-card';
+    div.innerHTML = `<h3>${escapeHtml(b.title)}</h3><div class="muted">${b.date} · ${b.chapterTitles.length} თავი</div>` +
+      b.chapterTitles.map(c=>{
+        const available = c.chapterId && sessionChapters[c.chapterId];
+        return `<div class="muted">• ${escapeHtml(c.title)} (გვ. ${c.from}-${c.to})` +
+          (available ? ` — <a class="chapter-link" style="display:inline; padding:0;" href="javascript:void(0)" onclick="openReaderById('${c.chapterId}')">📖 წაკითხვა</a>` : '') +
+          `</div>`;
+      }).join('');
+    box.appendChild(div);
+  });
+}
+
+/* ================= REMINDERS ================= */
+/* Native scheduling: if this app is wrapped with Capacitor and the
+   @capacitor/local-notifications plugin is installed & synced, reminders
+   fire from the OS at the exact moment — even if the app is closed.
+   Without that plugin (plain browser / no plugin yet), reminders still work
+   but only while this app is open, checked every 20s. */
+function getLN(){
+  try{ return window.Capacitor?.Plugins?.LocalNotifications || null; }catch(e){ return null; }
+}
+function hasNativeNotifications(){ return !!getLN(); }
+
+async function ensureNotifPermission(){
+  const LN = getLN();
+  if(LN){
+    try{
+      const perm = await LN.checkPermissions();
+      if(perm.display !== 'granted'){
+        await LN.requestPermissions();
+      }
+    }catch(e){}
+  } else if('Notification' in window && Notification.permission==='default'){
+    Notification.requestPermission();
+  }
+}
+
+function nextOccurrence(time, daily){
+  const [h,m] = time.split(':').map(Number);
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
+  if(d <= now) d.setDate(d.getDate()+1);
+  return d;
+}
+
+async function scheduleNative(r){
+  const LN = getLN();
+  if(!LN) return;
+  try{
+    const at = nextOccurrence(r.time, r.daily);
+    await LN.schedule({ notifications: [{
+      id: Number(r.id) % 2147483647,
+      title: 'შეხსენება',
+      body: r.text,
+      schedule: r.daily ? { on: {hour: at.getHours(), minute: at.getMinutes()}, allowWhileIdle: true }
+                         : { at, allowWhileIdle: true }
+    }]});
+  }catch(e){ /* plugin not fully available yet */ }
+}
+async function cancelNative(id){
+  const LN = getLN();
+  if(!LN) return;
+  try{ await LN.cancel({ notifications: [{ id: Number(id) % 2147483647 }] }); }catch(e){}
+}
+
+function renderReminders(){
+  const rems = store.get('reminders', []);
+  const box = document.getElementById('remindersList');
+  box.innerHTML = '';
+  if(rems.length===0){
+    box.innerHTML = '<div class="empty-state">შეხსენებები არ გაქვს დამატებული.</div>';
+  }
+  rems.slice().sort((a,b)=>a.time.localeCompare(b.time)).forEach(r=>{
+    const div = document.createElement('div');
+    div.className = 'reminder-item';
+    const tag = r.daily ? '' : ' · ერთხელ';
+    div.innerHTML = `<div class="reminder-time-badge">${r.time}</div><div class="reminder-text">${escapeHtml(r.text)}${tag}</div><button class="del-x" onclick="deleteReminder('${r.id}')">✕</button>`;
+    box.appendChild(div);
+  });
+  updateNotifBadge();
+  const permMsg = document.getElementById('remPermMsg');
+  if(hasNativeNotifications()){
+    permMsg.textContent = '';
+  } else if('Notification' in window){
+    if(Notification.permission==='default') permMsg.textContent = 'შეხსენების მისაღებად საჭიროა შეტყობინებების დაშვება (მუშაობს მხოლოდ აპის გახსნისას).';
+    else if(Notification.permission==='denied') permMsg.textContent = 'შეტყობინებები დაბლოკილია.';
+    else permMsg.textContent = 'შეხსენება მუშაობს მხოლოდ მაშინ, როცა აპლიკაცია გახსნილია.';
+  }
+}
+async function addReminder(){
+  const text = document.getElementById('remText').value.trim();
+  const time = document.getElementById('remTime').value;
+  const daily = document.getElementById('remDaily').checked;
+  if(!text || !time) return;
+  await ensureNotifPermission();
+  const rems = store.get('reminders', []);
+  const r = {id: Date.now().toString(), text, time, daily, firedDate: null};
+  rems.push(r);
+  store.set('reminders', rems);
+  await scheduleNative(r);
+  document.getElementById('remText').value='';
+  document.getElementById('remTime').value='';
+  renderReminders();
+}
+async function deleteReminder(id){
+  let rems = store.get('reminders', []);
+  rems = rems.filter(r=>r.id!==id);
+  store.set('reminders', rems);
+  await cancelNative(id);
+  renderReminders();
+}
+function updateNotifBadge(){
+  const rems = store.get('reminders', []);
+  const badge = document.getElementById('notifBadge');
+  badge.textContent = rems.length;
+  badge.classList.toggle('show', rems.length>0);
+}
+function checkReminders(){
+  // Foreground fallback for when the native plugin isn't installed/synced yet.
+  if(hasNativeNotifications()) return;
+  const rems = store.get('reminders', []);
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const nowStr = `${hh}:${mm}`;
+  const todayStr = now.toDateString();
+  let changed = false;
+  let remaining = [];
+  rems.forEach(r=>{
+    if(r.time===nowStr && r.firedDate!==todayStr){
+      changed = true;
+      fireReminder(r.text);
+      if(r.daily){ r.firedDate = todayStr; remaining.push(r); }
+      // one-time reminders are dropped after firing
+    } else {
+      remaining.push(r);
+    }
+  });
+  if(changed){ store.set('reminders', remaining); renderReminders(); }
+}
+function fireReminder(text){
+  if('Notification' in window && Notification.permission==='granted'){
+    new Notification('შეხსენება', {body: text});
+  } else {
+    alert('შეხსენება: ' + text);
+  }
+}
+setInterval(checkReminders, 20000);
+
+/* ================= INIT ================= */
+updateNotifBadge();
+newMathProblem();
+checkPinOnLaunch();
+</script>
+</body>
+</html>
