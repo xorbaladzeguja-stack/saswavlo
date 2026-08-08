@@ -1,0 +1,9 @@
+{
+  "appId": "com.ici.damkhmare",
+  "appName": "დამხმარე პროგრამა",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": true
+  }
+}
